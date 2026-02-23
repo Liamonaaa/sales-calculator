@@ -1,0 +1,838 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>?????? ??????</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;600;800&family=Heebo:wght@300;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #090c0a;
+        --bg-2: #0d1411;
+        --panel: #0f1914;
+        --panel-2: #141f18;
+        --text: #e8ffe9;
+        --muted: #9cc9a6;
+        --green: #35ff6b;
+        --green-2: #19cc59;
+        --border: #1d3a2a;
+        --shadow: 0 18px 60px rgba(3, 25, 12, 0.65);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Rubik", "Heebo", sans-serif;
+        background: radial-gradient(circle at 15% 20%, #17301f 0%, transparent 55%),
+          radial-gradient(circle at 80% 10%, #0d2416 0%, transparent 45%),
+          linear-gradient(160deg, var(--bg), var(--bg-2));
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 18px 48px;
+      }
+
+      .app {
+        width: min(880px, 96vw);
+        position: relative;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 24px;
+      }
+
+      .header h1 {
+        font-size: clamp(2rem, 2.8vw, 2.7rem);
+        margin: 0;
+        color: var(--text);
+        letter-spacing: 0.04em;
+      }
+
+      .header p {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-weight: 300;
+      }
+
+      .panel {
+        background: linear-gradient(160deg, var(--panel), var(--panel-2));
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(8px);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 18px;
+        margin-bottom: 20px;
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .label {
+        font-size: 0.95rem;
+        color: var(--muted);
+      }
+
+      select,
+      input[type="number"] {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid #23412f;
+        background: #0b1410;
+        color: var(--text);
+        font-size: 1rem;
+        outline: none;
+        transition: border 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      select:focus,
+      input[type="number"]:focus {
+        border-color: var(--green);
+        box-shadow: 0 0 0 2px rgba(53, 255, 107, 0.2);
+      }
+      .native-select {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+        width: 0;
+        height: 0;
+      }
+
+      .custom-select {
+        position: relative;
+        width: 100%;
+        font-size: 1rem;
+      }
+
+      .custom-select__trigger {
+        width: 100%;
+        height: 48px;
+        padding-inline-start: 14px;
+        padding-inline-end: 46px;
+        background: #121a17;
+        color: #ffffff;
+        border: 1px solid rgba(53, 255, 107, 0.25);
+        border-radius: 14px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        text-align: start;
+        gap: 10px;
+        transition: border 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      }
+
+      .custom-select__trigger:hover {
+        border-color: rgba(53, 255, 107, 0.6);
+      }
+
+      .custom-select__trigger:focus-visible {
+        outline: none;
+        border-color: var(--green);
+        box-shadow: 0 0 0 3px rgba(53, 255, 107, 0.35);
+      }
+
+      .custom-select__value {
+        flex: 1;
+        text-align: start;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .custom-select__chevron {
+        position: absolute;
+        inset-inline-end: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 18px;
+        height: 18px;
+        pointer-events: none;
+        color: var(--green);
+        opacity: 0.8;
+        transition: transform 0.2s ease;
+      }
+
+      .custom-select.open .custom-select__chevron {
+        transform: translateY(-50%) rotate(180deg);
+      }
+
+      .custom-select__chevron svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      .custom-select__panel {
+        position: absolute;
+        top: calc(100% + 8px);
+        inset-inline-start: 0;
+        inset-inline-end: 0;
+        background: #101915;
+        border: 1px solid rgba(53, 255, 107, 0.25);
+        border-radius: 14px;
+        box-shadow: 0 14px 35px rgba(3, 25, 12, 0.5);
+        padding: 6px;
+        max-height: 240px;
+        overflow-y: auto;
+        opacity: 0;
+        transform: translateY(-6px);
+        pointer-events: none;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        z-index: 12;
+      }
+
+      .custom-select.open .custom-select__panel {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
+
+      .custom-select__option {
+        padding: 10px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        text-align: start;
+        line-height: 1.4;
+        transition: background 0.15s ease, color 0.15s ease;
+      }
+
+      .custom-select__option:hover,
+      .custom-select__option.is-active {
+        background: rgba(23, 67, 40, 0.6);
+      }
+
+      .custom-select__option[aria-selected="true"] {
+        background: rgba(23, 67, 40, 0.85);
+        color: #eafff0;
+      }
+
+      .custom-select__option[aria-selected="true"]::after {
+        content: "?";
+        color: var(--green);
+        font-weight: 700;
+      }
+
+      .custom-select__empty {
+        padding: 10px 12px;
+        color: var(--muted);
+        text-align: start;
+      }
+
+      .total {
+        font-size: 1.2rem;
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: rgba(10, 24, 16, 0.7);
+        border: 1px solid #1d3a2a;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+
+      .total strong {
+        color: var(--green);
+        font-size: 1.4rem;
+      }
+
+      .actions {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+
+      .glow-button {
+        background: linear-gradient(135deg, #1edb5f, #4bff85);
+        color: #05140a;
+        border: none;
+        padding: 12px 28px;
+        font-size: 1.05rem;
+        font-weight: 700;
+        border-radius: 999px;
+        cursor: pointer;
+        box-shadow: 0 0 18px rgba(53, 255, 107, 0.45), 0 8px 30px rgba(11, 56, 22, 0.7);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .glow-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 0 24px rgba(53, 255, 107, 0.7), 0 10px 34px rgba(11, 56, 22, 0.85);
+      }
+
+      .copy-output {
+        background: #0c1712;
+        border: 1px solid #1f3b2c;
+        border-radius: 16px;
+        padding: 18px;
+        white-space: pre-line;
+        font-size: 0.98rem;
+        color: #d8ffe3;
+      }
+
+      .copy-title {
+        margin: 0 0 8px;
+        font-weight: 600;
+        color: var(--muted);
+      }
+
+      .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 28px;
+        transform: translateX(-50%) translateY(20px);
+        background: #0f1e15;
+        border: 1px solid #2b5a3a;
+        color: var(--text);
+        padding: 10px 18px;
+        border-radius: 999px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        z-index: 20;
+      }
+
+      .toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      .hint {
+        font-size: 0.85rem;
+        color: var(--muted);
+        text-align: center;
+        margin-top: 10px;
+      }
+
+      @media (max-width: 560px) {
+        .panel {
+          padding: 20px;
+        }
+
+        .total {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <header class="header">
+        <h1>?????? ??????</h1>
+        <p>???? ????, ?????? ???? ????? ????? ????? ??????.</p>
+      </header>
+
+      <section class="panel">
+        <div class="grid">
+          <label class="field">
+            <span class="label">???</span>
+            <select id="typeSelect">
+              <option value="???? ????">???? ????</option>
+              <option value="????">????</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="label">???????</span>
+            <select id="categorySelect"></select>
+          </label>
+
+          <label class="field">
+            <span class="label">????</span>
+            <select id="productSelect"></select>
+          </label>
+
+          <label class="field">
+            <span class="label">????</span>
+            <input id="quantityInput" type="number" min="1" step="1" value="1" />
+          </label>
+        </div>
+
+        <div class="total">
+          <span>????:</span>
+          <strong id="totalValue">0</strong>
+        </div>
+
+        <div class="actions">
+          <button class="glow-button" id="copyButton">???? ?????</button>
+        </div>
+
+        <div class="copy-title">???? ???? ??????</div>
+        <pre class="copy-output" id="formatOutput"></pre>
+        <div class="hint">????? ?????? ???? ??? ??? ???????.</div>
+      </section>
+    </main>
+
+    <div id="toast" class="toast" role="status" aria-live="polite">?????! ????? ????? ????</div>
+
+    <script>
+      const productsData = {
+        "???? ????": {
+          "?????": [
+            { name: "??? ???", price: 100 },
+            { name: "??? ?????", price: 100 }
+          ],
+          "???? ?? / ???????": [
+            { name: "?’???", price: 350 },
+            { name: "???? ?????", price: 400 }
+          ],
+          "???? ???": [
+            { name: "???? ?????", price: 500 },
+            { name: "??? ???????", price: 500 },
+            { name: "??? ???????", price: 450 },
+            { name: "???", price: 600 }
+          ]
+        },
+        "????": {
+          "?????": [
+            { name: "??? ??? (???? 10 ?-800)", price: 800 }
+          ],
+          "???? ?? / ???????": [
+            { name: "?????? ?’??? (???? 10 ?-800)", price: 800 },
+            { name: "?’??? (???? 10 ?-3000)", price: 3000 },
+            { name: "???? ????? (???? 10 ?-3500)", price: 3500 }
+          ],
+          "???? ???": [
+            { name: "???? ???? (5 ??? ??????? + 10 ?????)", price: 3000 },
+            { name: "???? ????? (10 ??? ??????? + 15 ?????)", price: 5000 },
+            { name: "???? ????? (10 ??????? ???? + ?’??? + 10 ????? ?? ????? ????)", price: 8000 },
+            { name: "???? ????? ??? (5 ????? ????? + 5 ?????)", price: 3000 },
+            { name: "???? ????? ???? (10 ????? ????? + 15 ?????)", price: 4500 }
+          ]
+        }
+      };
+
+      const typeSelect = document.getElementById("typeSelect");
+      const categorySelect = document.getElementById("categorySelect");
+      const productSelect = document.getElementById("productSelect");
+      const quantityInput = document.getElementById("quantityInput");
+      const totalValue = document.getElementById("totalValue");
+      const formatOutput = document.getElementById("formatOutput");
+      const copyButton = document.getElementById("copyButton");
+      const toast = document.getElementById("toast");
+
+      const formatNumber = (value) => value.toLocaleString("he-IL");
+
+      const customSelectState = new Map();
+
+      const updateCustomValue = (state) => {
+        const options = Array.from(state.selectEl.options);
+        if (!options.length) {
+          state.valueSpan.textContent = "—";
+          state.activeIndex = -1;
+          return;
+        }
+        if (state.selectEl.selectedIndex < 0) {
+          state.selectEl.selectedIndex = 0;
+        }
+        const selectedOption = state.selectEl.options[state.selectEl.selectedIndex];
+        state.valueSpan.textContent = selectedOption ? selectedOption.textContent : options[0].textContent;
+        state.optionElements.forEach((optionEl, index) => {
+          const isSelected = index === state.selectEl.selectedIndex;
+          optionEl.setAttribute("aria-selected", isSelected ? "true" : "false");
+        });
+        state.activeIndex = state.selectEl.selectedIndex;
+      };
+
+      const renderCustomOptions = (state) => {
+        state.panel.innerHTML = "";
+        state.optionElements = [];
+        const options = Array.from(state.selectEl.options);
+        if (!options.length) {
+          const empty = document.createElement("div");
+          empty.className = "custom-select__empty";
+          empty.textContent = "??? ????????";
+          state.panel.appendChild(empty);
+          state.valueSpan.textContent = "—";
+          state.activeIndex = -1;
+          return;
+        }
+        options.forEach((option, index) => {
+          const optionEl = document.createElement("div");
+          optionEl.className = "custom-select__option";
+          optionEl.setAttribute("role", "option");
+          optionEl.dataset.index = String(index);
+          optionEl.dataset.value = option.value;
+          optionEl.textContent = option.textContent;
+          optionEl.setAttribute("aria-selected", option.selected ? "true" : "false");
+          state.panel.appendChild(optionEl);
+          state.optionElements.push(optionEl);
+        });
+        updateCustomValue(state);
+      };
+
+      const setActiveOption = (state, index, scrollIntoView) => {
+        const count = state.optionElements.length;
+        if (!count) {
+          state.activeIndex = -1;
+          return;
+        }
+        let nextIndex = index;
+        if (nextIndex < 0) {
+          nextIndex = count - 1;
+        }
+        if (nextIndex >= count) {
+          nextIndex = 0;
+        }
+        state.activeIndex = nextIndex;
+        state.optionElements.forEach((optionEl, optionIndex) => {
+          optionEl.classList.toggle("is-active", optionIndex === nextIndex);
+        });
+        if (scrollIntoView) {
+          state.optionElements[nextIndex].scrollIntoView({ block: "nearest" });
+        }
+      };
+
+      const closeCustomSelect = (state) => {
+        if (!state.isOpen) {
+          return;
+        }
+        state.isOpen = false;
+        state.wrapper.classList.remove("open");
+        state.trigger.setAttribute("aria-expanded", "false");
+        state.optionElements.forEach((optionEl) => optionEl.classList.remove("is-active"));
+      };
+
+      const closeAllCustomSelects = (except) => {
+        customSelectState.forEach((state) => {
+          if (state !== except) {
+            closeCustomSelect(state);
+          }
+        });
+      };
+
+      const openCustomSelect = (state) => {
+        if (state.isOpen) {
+          return;
+        }
+        closeAllCustomSelects(state);
+        state.isOpen = true;
+        state.wrapper.classList.add("open");
+        state.trigger.setAttribute("aria-expanded", "true");
+        setActiveOption(state, state.selectEl.selectedIndex, true);
+      };
+
+      const selectCustomOption = (state, index) => {
+        const count = state.selectEl.options.length;
+        if (!count) {
+          return;
+        }
+        let nextIndex = index;
+        if (Number.isNaN(nextIndex) || nextIndex < 0) {
+          nextIndex = 0;
+        }
+        if (nextIndex >= count) {
+          nextIndex = count - 1;
+        }
+        state.selectEl.selectedIndex = nextIndex;
+        state.selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+        updateCustomValue(state);
+        closeCustomSelect(state);
+      };
+
+      const handleTriggerKey = (event, state) => {
+        switch (event.key) {
+          case "ArrowDown":
+          case "ArrowUp":
+            event.preventDefault();
+            if (!state.isOpen) {
+              openCustomSelect(state);
+            }
+            setActiveOption(state, state.activeIndex + (event.key === "ArrowDown" ? 1 : -1), true);
+            break;
+          case "Enter":
+          case " ":
+            event.preventDefault();
+            if (!state.isOpen) {
+              openCustomSelect(state);
+            } else {
+              selectCustomOption(state, state.activeIndex);
+            }
+            break;
+          case "Escape":
+            event.preventDefault();
+            closeCustomSelect(state);
+            break;
+          case "Tab":
+            closeCustomSelect(state);
+            break;
+          case "Home":
+            event.preventDefault();
+            if (!state.isOpen) {
+              openCustomSelect(state);
+            }
+            setActiveOption(state, 0, true);
+            break;
+          case "End":
+            event.preventDefault();
+            if (!state.isOpen) {
+              openCustomSelect(state);
+            }
+            setActiveOption(state, state.optionElements.length - 1, true);
+            break;
+          default:
+            break;
+        }
+      };
+      const createCustomSelect = (selectEl) => {
+        selectEl.classList.add("native-select");
+        selectEl.setAttribute("aria-hidden", "true");
+        selectEl.tabIndex = -1;
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "custom-select";
+
+        const trigger = document.createElement("button");
+        trigger.type = "button";
+        trigger.className = "custom-select__trigger";
+        trigger.setAttribute("aria-haspopup", "listbox");
+        trigger.setAttribute("aria-expanded", "false");
+
+        const valueSpan = document.createElement("span");
+        valueSpan.className = "custom-select__value";
+
+        const chevron = document.createElement("span");
+        chevron.className = "custom-select__chevron";
+        chevron.innerHTML =
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>';
+
+        trigger.appendChild(valueSpan);
+        trigger.appendChild(chevron);
+
+        const panel = document.createElement("div");
+        panel.className = "custom-select__panel";
+        panel.setAttribute("role", "listbox");
+        panel.id = `${selectEl.id}-listbox`;
+
+        trigger.setAttribute("aria-controls", panel.id);
+
+        wrapper.appendChild(trigger);
+        wrapper.appendChild(panel);
+
+        selectEl.parentNode.insertBefore(wrapper, selectEl);
+
+        const labelEl = selectEl.closest(".field")?.querySelector(".label");
+        if (labelEl) {
+          if (!labelEl.id) {
+            labelEl.id = `${selectEl.id}-label`;
+          }
+          trigger.setAttribute("aria-labelledby", labelEl.id);
+          panel.setAttribute("aria-labelledby", labelEl.id);
+        } else {
+          trigger.setAttribute("aria-label", selectEl.id || "?????");
+        }
+
+        const state = {
+          selectEl,
+          wrapper,
+          trigger,
+          panel,
+          valueSpan,
+          optionElements: [],
+          activeIndex: selectEl.selectedIndex,
+          isOpen: false
+        };
+
+        customSelectState.set(selectEl, state);
+
+        renderCustomOptions(state);
+
+        trigger.addEventListener("click", () => {
+          if (state.isOpen) {
+            closeCustomSelect(state);
+          } else {
+            openCustomSelect(state);
+          }
+        });
+
+        trigger.addEventListener("keydown", (event) => handleTriggerKey(event, state));
+
+        panel.addEventListener("click", (event) => {
+          const optionEl = event.target.closest(".custom-select__option");
+          if (!optionEl) {
+            return;
+          }
+          selectCustomOption(state, parseInt(optionEl.dataset.index, 10));
+        });
+
+        panel.addEventListener("mouseover", (event) => {
+          const optionEl = event.target.closest(".custom-select__option");
+          if (!optionEl) {
+            return;
+          }
+          setActiveOption(state, parseInt(optionEl.dataset.index, 10), false);
+        });
+
+        selectEl.addEventListener("change", () => {
+          renderCustomOptions(state);
+        });
+      };
+      const refreshCustomSelect = (selectEl) => {
+        const state = customSelectState.get(selectEl);
+        if (state) {
+          renderCustomOptions(state);
+        }
+      };
+
+      const initCustomSelects = () => {
+        [typeSelect, categorySelect, productSelect].forEach((selectEl) => {
+          if (selectEl) {
+            createCustomSelect(selectEl);
+          }
+        });
+      };
+
+      document.addEventListener("click", (event) => {
+        customSelectState.forEach((state) => {
+          if (state.isOpen && !state.wrapper.contains(event.target)) {
+            closeCustomSelect(state);
+          }
+        });
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          customSelectState.forEach((state) => closeCustomSelect(state));
+        }
+      });
+
+      const populateCategories = () => {
+        const type = typeSelect.value;
+        const categories = Object.keys(productsData[type]);
+        categorySelect.innerHTML = "";
+        categories.forEach((category) => {
+          const option = document.createElement("option");
+          option.value = category;
+          option.textContent = category;
+          categorySelect.appendChild(option);
+        });
+        refreshCustomSelect(categorySelect);
+      };
+
+      const populateProducts = () => {
+        const type = typeSelect.value;
+        const category = categorySelect.value;
+        const products = productsData[type][category] || [];
+        productSelect.innerHTML = "";
+        products.forEach((product, index) => {
+          const option = document.createElement("option");
+          option.value = String(index);
+          option.textContent = `${product.name} • ${formatNumber(product.price)}`;
+          productSelect.appendChild(option);
+        });
+        refreshCustomSelect(productSelect);
+      };
+
+      const getQuantity = () => {
+        let quantity = parseInt(quantityInput.value, 10);
+        if (Number.isNaN(quantity) || quantity < 1) {
+          quantity = 1;
+          quantityInput.value = "1";
+        }
+        return quantity;
+      };
+
+      const getSelectedProduct = () => {
+        const type = typeSelect.value;
+        const category = categorySelect.value;
+        const products = productsData[type][category] || [];
+        const index = parseInt(productSelect.value, 10);
+        return products[index] || products[0];
+      };
+
+      const updateOutput = () => {
+        const quantity = getQuantity();
+        const category = categorySelect.value;
+        const product = getSelectedProduct();
+        const price = product ? product.price : 0;
+        const total = price * quantity;
+
+        totalValue.textContent = formatNumber(total);
+
+        const formattedText = `????? ?????\n?? ?????: ${category} - ${product ? product.name : ""}\n????: ${quantity}\n??? ???: ${formatNumber(total)}`;
+        formatOutput.textContent = formattedText;
+      };
+
+      const showToast = () => {
+        toast.classList.add("show");
+        clearTimeout(showToast.timeoutId);
+        showToast.timeoutId = setTimeout(() => {
+          toast.classList.remove("show");
+        }, 2200);
+      };
+
+      const copyToClipboard = async () => {
+        const text = formatOutput.textContent;
+        try {
+          await navigator.clipboard.writeText(text);
+          showToast();
+        } catch (error) {
+          const temp = document.createElement("textarea");
+          temp.value = text;
+          temp.style.position = "fixed";
+          temp.style.left = "-9999px";
+          document.body.appendChild(temp);
+          temp.select();
+          document.execCommand("copy");
+          document.body.removeChild(temp);
+          showToast();
+        }
+      };
+
+      typeSelect.addEventListener("change", () => {
+        populateCategories();
+        populateProducts();
+        updateOutput();
+      });
+
+      categorySelect.addEventListener("change", () => {
+        populateProducts();
+        updateOutput();
+      });
+
+      productSelect.addEventListener("change", updateOutput);
+      quantityInput.addEventListener("input", updateOutput);
+
+      copyButton.addEventListener("click", copyToClipboard);
+
+      initCustomSelects();
+      populateCategories();
+      populateProducts();
+      updateOutput();
+    </script>
+  </body>
+</html>
+
+
+
+
