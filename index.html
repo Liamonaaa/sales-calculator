@@ -1,9 +1,9 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="he" dir="rtl">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>?????? ??????</title>
+    <title>מחשבון מכירות</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -111,6 +111,8 @@
         border-color: var(--green);
         box-shadow: 0 0 0 2px rgba(53, 255, 107, 0.2);
       }
+
+      
       .native-select {
         position: absolute;
         opacity: 0;
@@ -233,7 +235,7 @@
       }
 
       .custom-select__option[aria-selected="true"]::after {
-        content: "?";
+        content: "✓";
         color: var(--green);
         font-weight: 700;
       }
@@ -242,9 +244,7 @@
         padding: 10px 12px;
         color: var(--muted);
         text-align: start;
-      }
-
-      .total {
+      }.total {
         font-size: 1.2rem;
         padding: 14px 16px;
         border-radius: 14px;
@@ -348,86 +348,86 @@
   <body>
     <main class="app">
       <header class="header">
-        <h1>?????? ??????</h1>
-        <p>???? ????, ?????? ???? ????? ????? ????? ??????.</p>
+        <h1>מחשבון מכירות</h1>
+        <p>בחרו מוצר, הגדירו כמות וקבלו פורמט מסודר לשיתוף.</p>
       </header>
 
       <section class="panel">
         <div class="grid">
           <label class="field">
-            <span class="label">???</span>
+            <span class="label">סוג</span>
             <select id="typeSelect">
-              <option value="???? ????">???? ????</option>
-              <option value="????">????</option>
+              <option value="מוצר רגיל">מוצר רגיל</option>
+              <option value="מבצע">מבצע</option>
             </select>
           </label>
 
           <label class="field">
-            <span class="label">???????</span>
+            <span class="label">קטגוריה</span>
             <select id="categorySelect"></select>
           </label>
 
           <label class="field">
-            <span class="label">????</span>
+            <span class="label">מוצר</span>
             <select id="productSelect"></select>
           </label>
 
           <label class="field">
-            <span class="label">????</span>
+            <span class="label">כמות</span>
             <input id="quantityInput" type="number" min="1" step="1" value="1" />
           </label>
         </div>
 
         <div class="total">
-          <span>????:</span>
+          <span>סה״כ:</span>
           <strong id="totalValue">0</strong>
         </div>
 
         <div class="actions">
-          <button class="glow-button" id="copyButton">???? ?????</button>
+          <button class="glow-button" id="copyButton">העתק פורמט</button>
         </div>
 
-        <div class="copy-title">???? ???? ??????</div>
+        <div class="copy-title">טקסט מוכן להעתקה</div>
         <pre class="copy-output" id="formatOutput"></pre>
-        <div class="hint">????? ?????? ???? ??? ??? ???????.</div>
+        <div class="hint">הטקסט מתעדכן בזמן אמת לפי הבחירות.</div>
       </section>
     </main>
 
-    <div id="toast" class="toast" role="status" aria-live="polite">?????! ????? ????? ????</div>
+    <div id="toast" class="toast" role="status" aria-live="polite">הועתק! הטקסט הועתק ללוח</div>
 
     <script>
       const productsData = {
-        "???? ????": {
-          "?????": [
-            { name: "??? ???", price: 100 },
-            { name: "??? ?????", price: 100 }
+        "מוצר רגיל": {
+          "שתייה": [
+            { name: "מיץ פטל", price: 100 },
+            { name: "מיץ ענבים", price: 100 }
           ],
-          "???? ?? / ???????": [
-            { name: "?�???", price: 350 },
-            { name: "???? ?????", price: 400 }
+          "אוכל קל / קינוחים": [
+            { name: "צ’יפס", price: 350 },
+            { name: "כדור פלאפל", price: 400 }
           ],
-          "???? ???": [
-            { name: "???? ?????", price: 500 },
-            { name: "??? ???????", price: 500 },
-            { name: "??? ???????", price: 450 },
-            { name: "???", price: 600 }
+          "אוכל כבד": [
+            { name: "פיתה פלאפל", price: 500 },
+            { name: "בגט שווארמה", price: 500 },
+            { name: "סלט שווארמה", price: 450 },
+            { name: "קבב", price: 600 }
           ]
         },
-        "????": {
-          "?????": [
-            { name: "??? ??? (???? 10 ?-800)", price: 800 }
+        "מבצע": {
+          "שתייה": [
+            { name: "מיץ פטל (מבצע 10 ב-800)", price: 800 }
           ],
-          "???? ?? / ???????": [
-            { name: "?????? ?�??? (???? 10 ?-800)", price: 800 },
-            { name: "?�??? (???? 10 ?-3000)", price: 3000 },
-            { name: "???? ????? (???? 10 ?-3500)", price: 3500 }
+          "אוכל קל / קינוחים": [
+            { name: "שוקולד צ’יפס (מבצע 10 ב-800)", price: 800 },
+            { name: "צ’יפס (מבצע 10 ב-3000)", price: 3000 },
+            { name: "כדור פלאפל (מבצע 10 ב-3500)", price: 3500 }
           ],
-          "???? ???": [
-            { name: "???? ???? (5 ??? ??????? + 10 ?????)", price: 3000 },
-            { name: "???? ????? (10 ??? ??????? + 15 ?????)", price: 5000 },
-            { name: "???? ????? (10 ??????? ???? + ?�??? + 10 ????? ?? ????? ????)", price: 8000 },
-            { name: "???? ????? ??? (5 ????? ????? + 5 ?????)", price: 3000 },
-            { name: "???? ????? ???? (10 ????? ????? + 15 ?????)", price: 4500 }
+          "אוכל כבד": [
+            { name: "עסקת קטנה (5 בגט שווארמה + 10 שתייה)", price: 3000 },
+            { name: "עסקת גדולה (10 בגט שווארמה + 15 שתייה)", price: 5000 },
+            { name: "עסקת ענקית (10 שווארמה בלחמ + צ’יפס + 10 שתייה על חשבון הבית)", price: 8000 },
+            { name: "עסקת פלאפל קטו (5 פיתות פלאפל + 5 שתייה)", price: 3000 },
+            { name: "עסקת פלאפל גדול (10 פיתות פלאפל + 15 שתייה)", price: 4500 }
           ]
         }
       };
@@ -448,7 +448,7 @@
       const updateCustomValue = (state) => {
         const options = Array.from(state.selectEl.options);
         if (!options.length) {
-          state.valueSpan.textContent = "�";
+          state.valueSpan.textContent = "—";
           state.activeIndex = -1;
           return;
         }
@@ -471,9 +471,9 @@
         if (!options.length) {
           const empty = document.createElement("div");
           empty.className = "custom-select__empty";
-          empty.textContent = "??? ????????";
+          empty.textContent = "אין אפשרויות";
           state.panel.appendChild(empty);
-          state.valueSpan.textContent = "�";
+          state.valueSpan.textContent = "—";
           state.activeIndex = -1;
           return;
         }
@@ -604,6 +604,7 @@
             break;
         }
       };
+
       const createCustomSelect = (selectEl) => {
         selectEl.classList.add("native-select");
         selectEl.setAttribute("aria-hidden", "true");
@@ -649,7 +650,7 @@
           trigger.setAttribute("aria-labelledby", labelEl.id);
           panel.setAttribute("aria-labelledby", labelEl.id);
         } else {
-          trigger.setAttribute("aria-label", selectEl.id || "?????");
+          trigger.setAttribute("aria-label", selectEl.id || "בחירה");
         }
 
         const state = {
@@ -697,6 +698,7 @@
           renderCustomOptions(state);
         });
       };
+
       const refreshCustomSelect = (selectEl) => {
         const state = customSelectState.get(selectEl);
         if (state) {
@@ -736,7 +738,7 @@
           option.textContent = category;
           categorySelect.appendChild(option);
         });
-        refreshCustomSelect(categorySelect);
+              refreshCustomSelect(categorySelect);
       };
 
       const populateProducts = () => {
@@ -747,10 +749,10 @@
         products.forEach((product, index) => {
           const option = document.createElement("option");
           option.value = String(index);
-          option.textContent = `${product.name} � ${formatNumber(product.price)}`;
+          option.textContent = `${product.name} • ${formatNumber(product.price)}`;
           productSelect.appendChild(option);
         });
-        refreshCustomSelect(productSelect);
+              refreshCustomSelect(productSelect);
       };
 
       const getQuantity = () => {
@@ -779,7 +781,7 @@
 
         totalValue.textContent = formatNumber(total);
 
-        const formattedText = `????? ?????\n?? ?????: ${category} - ${product ? product.name : ""}\n????: ${quantity}\n??? ???: ${formatNumber(total)}`;
+        const formattedText = `פורמט מכירה\nמה מכרתי: ${category} - ${product ? product.name : ""}\nכמות: ${quantity}\nכמה עלה: ${formatNumber(total)}`;
         formatOutput.textContent = formattedText;
       };
 
@@ -826,13 +828,12 @@
       copyButton.addEventListener("click", copyToClipboard);
 
       initCustomSelects();
+
       populateCategories();
       populateProducts();
       updateOutput();
     </script>
   </body>
 </html>
-
-
 
 
