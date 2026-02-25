@@ -1,9 +1,9 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="he" dir="rtl">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>מחשבון מכירות</title>
+    <title>?????? � ???? ?????</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -235,7 +235,7 @@
       }
 
       .custom-select__option[aria-selected="true"]::after {
-        content: "✓";
+        content: "?";
         color: var(--green);
         font-weight: 700;
       }
@@ -348,86 +348,79 @@
   <body>
     <main class="app">
       <header class="header">
-        <h1>מחשבון מכירות</h1>
-        <p>בחרו מוצר, הגדירו כמות וקבלו פורמט מסודר לשיתוף.</p>
+        <h1>?????? � ???? ?????</h1>
+        <p>???? ????, ?????? ???? ????? ????? ????? ??????.</p>
       </header>
 
       <section class="panel">
         <div class="grid">
           <label class="field">
-            <span class="label">סוג</span>
+            <span class="label">???</span>
             <select id="typeSelect">
-              <option value="מוצר רגיל">מוצר רגיל</option>
-              <option value="מבצע">מבצע</option>
+              <option value="????">????</option>
+              <option value="??????">??????</option>
             </select>
           </label>
 
           <label class="field">
-            <span class="label">קטגוריה</span>
+            <span class="label">???????</span>
             <select id="categorySelect"></select>
           </label>
 
           <label class="field">
-            <span class="label">מוצר</span>
+            <span class="label">????</span>
             <select id="productSelect"></select>
           </label>
 
           <label class="field">
-            <span class="label">כמות</span>
+            <span class="label">????</span>
             <input id="quantityInput" type="number" min="1" step="1" value="1" />
           </label>
         </div>
 
         <div class="total">
-          <span>סה״כ:</span>
+          <span>????:</span>
           <strong id="totalValue">0</strong>
         </div>
 
         <div class="actions">
-          <button class="glow-button" id="copyButton">העתק פורמט</button>
+          <button class="glow-button" id="copyButton">???? ?????</button>
         </div>
 
-        <div class="copy-title">טקסט מוכן להעתקה</div>
+        <div class="copy-title">???? ???? ??????</div>
         <pre class="copy-output" id="formatOutput"></pre>
-        <div class="hint">הטקסט מתעדכן בזמן אמת לפי הבחירות.</div>
+        <div class="hint">????? ?????? ???? ??? ??? ???????.</div>
       </section>
     </main>
 
-    <div id="toast" class="toast" role="status" aria-live="polite">הועתק! הטקסט הועתק ללוח</div>
+    <div id="toast" class="toast" role="status" aria-live="polite">?????! ????? ????? ????</div>
 
     <script>
-      const productsData = {
-        "מוצר רגיל": {
-          "שתייה": [
-            { name: "מיץ פטל", price: 100 },
-            { name: "מיץ ענבים", price: 100 }
+                  const productsData = {
+        "???? ????": {
+          "?????": [
+            { name: "??????? ?????", price: 100 },
+            { name: "?? ????", price: 100 },
+            { name: "???", price: 100 }
           ],
-          "אוכל קל / קינוחים": [
-            { name: "צ’יפס", price: 350 },
-            { name: "כדור פלאפל", price: 400 }
+          "???? ??": [
+            { name: "?????? ?????", price: 160 },
+            { name: "?????? ????", price: 125 }
           ],
-          "אוכל כבד": [
-            { name: "פיתה פלאפל", price: 500 },
-            { name: "בגט שווארמה", price: 500 },
-            { name: "סלט שווארמה", price: 450 },
-            { name: "קבב", price: 600 }
+          "???? ???": [
+            { name: "???? ??????", price: 390 },
+            { name: "???? ????", price: 390 },
+            { name: "?????? ?????", price: 350 },
+            { name: "????? ?????", price: 380 }
+          ],
+          "??????": [
+            { name: "????? ??????", price: 550 }
           ]
         },
-        "מבצע": {
-          "שתייה": [
-            { name: "מיץ פטל (מבצע 10 ב-800)", price: 800 }
-          ],
-          "אוכל קל / קינוחים": [
-            { name: "שוקולד צ’יפס (מבצע 10 ב-800)", price: 800 },
-            { name: "צ’יפס (מבצע 10 ב-3000)", price: 3000 },
-            { name: "כדור פלאפל (מבצע 10 ב-3500)", price: 3500 }
-          ],
-          "אוכל כבד": [
-            { name: "עסקת קטנה (5 בגט שווארמה + 10 שתייה)", price: 3000 },
-            { name: "עסקת גדולה (10 בגט שווארמה + 15 שתייה)", price: 5000 },
-            { name: "עסקת ענקית (10 שווארמה בלחמ + צ’יפס + 10 שתייה על חשבון הבית)", price: 8000 },
-            { name: "עסקת פלאפל קטו (5 פיתות פלאפל + 5 שתייה)", price: 3000 },
-            { name: "עסקת פלאפל גדול (10 פיתות פלאפל + 15 שתייה)", price: 4500 }
+        "????": {
+          "??????": [
+            { name: "???? ???", price: 1560, details: "5 ????, 10 ???????" },
+            { name: "???? ????", price: 3120, details: "10 ????, 20 ???????" }
           ]
         }
       };
@@ -448,7 +441,7 @@
       const updateCustomValue = (state) => {
         const options = Array.from(state.selectEl.options);
         if (!options.length) {
-          state.valueSpan.textContent = "—";
+          state.valueSpan.textContent = "�";
           state.activeIndex = -1;
           return;
         }
@@ -471,9 +464,9 @@
         if (!options.length) {
           const empty = document.createElement("div");
           empty.className = "custom-select__empty";
-          empty.textContent = "אין אפשרויות";
+          empty.textContent = "??? ????????";
           state.panel.appendChild(empty);
-          state.valueSpan.textContent = "—";
+          state.valueSpan.textContent = "�";
           state.activeIndex = -1;
           return;
         }
@@ -650,7 +643,7 @@
           trigger.setAttribute("aria-labelledby", labelEl.id);
           panel.setAttribute("aria-labelledby", labelEl.id);
         } else {
-          trigger.setAttribute("aria-label", selectEl.id || "בחירה");
+          trigger.setAttribute("aria-label", selectEl.id || "?????");
         }
 
         const state = {
@@ -749,7 +742,8 @@
         products.forEach((product, index) => {
           const option = document.createElement("option");
           option.value = String(index);
-          option.textContent = `${product.name} • ${formatNumber(product.price)}`;
+          const details = product.details ? ` (${product.details})` : "";
+          option.textContent = `${product.name}${details} � ${formatNumber(product.price)}`;
           productSelect.appendChild(option);
         });
               refreshCustomSelect(productSelect);
@@ -781,7 +775,12 @@
 
         totalValue.textContent = formatNumber(total);
 
-        const formattedText = `פורמט מכירה\nמה מכרתי: ${category} - ${product ? product.name : ""}\nכמות: ${quantity}\nכמה עלה: ${formatNumber(total)}`;
+                const productName = product ? product.name : "";
+        const productDetails = product && product.details ? ` (${product.details})` : "";
+        const formattedText = `????? ?????
+?? ?????: ${category} - ${productName}${productDetails}
+????: ${quantity}
+??? ???: ${formatNumber(total)}`;
         formatOutput.textContent = formattedText;
       };
 
@@ -835,5 +834,10 @@
     </script>
   </body>
 </html>
+
+
+
+
+
 
 
