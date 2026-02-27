@@ -385,6 +385,7 @@
 
         <div class="actions">
           <button class="glow-button" id="copyButton">העתק פורמט</button>
+          <button class="glow-button" id="resetButton" type="button">איפוס</button>
         </div>
 
         <div class="copy-title">טקסט מוכן להעתקה</div>
@@ -432,7 +433,15 @@
       const totalValue = document.getElementById("totalValue");
       const formatOutput = document.getElementById("formatOutput");
       const copyButton = document.getElementById("copyButton");
+      const resetButton = document.getElementById("resetButton");
       const toast = document.getElementById("toast");
+      const DEFAULT_TYPE = typeSelect.options[0]?.value || "";
+      const DEFAULT_QUANTITY = (() => {
+        const parsed = parseInt(quantityInput.defaultValue || quantityInput.value, 10);
+        return Number.isNaN(parsed) || parsed < 1 ? 1 : parsed;
+      })();
+      const CATEGORY_PLACEHOLDER = "בחרו קטגוריה";
+      const PRODUCT_PLACEHOLDER = "בחרו מוצר";
 
       const formatNumber = (value) => value.toLocaleString("he-IL");
 
@@ -725,13 +734,18 @@
         const type = typeSelect.value;
         const categories = Object.keys(productsData[type]);
         categorySelect.innerHTML = "";
+        const placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.textContent = CATEGORY_PLACEHOLDER;
+        categorySelect.appendChild(placeholder);
         categories.forEach((category) => {
           const option = document.createElement("option");
           option.value = category;
           option.textContent = category;
           categorySelect.appendChild(option);
         });
-              refreshCustomSelect(categorySelect);
+        categorySelect.value = "";
+        refreshCustomSelect(categorySelect);
       };
 
       const populateProducts = () => {
@@ -739,14 +753,19 @@
         const category = categorySelect.value;
         const products = productsData[type][category] || [];
         productSelect.innerHTML = "";
-                products.forEach((product, index) => {
+        const placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.textContent = PRODUCT_PLACEHOLDER;
+        productSelect.appendChild(placeholder);
+        products.forEach((product, index) => {
           const option = document.createElement("option");
           option.value = String(index);
           const details = product.details ? ` (${product.details})` : "";
           option.textContent = `${product.name}${details} • ${formatNumber(product.price)}`;
           productSelect.appendChild(option);
         });
-              refreshCustomSelect(productSelect);
+        productSelect.value = "";
+        refreshCustomSelect(productSelect);
       };
 
       const getQuantity = () => {
@@ -761,15 +780,26 @@
       const getSelectedProduct = () => {
         const type = typeSelect.value;
         const category = categorySelect.value;
+        if (!category) {
+          return null;
+        }
         const products = productsData[type][category] || [];
         const index = parseInt(productSelect.value, 10);
-        return products[index] || products[0];
+        if (Number.isNaN(index)) {
+          return null;
+        }
+        return products[index] || null;
       };
 
       const updateOutput = () => {
         const quantity = getQuantity();
         const category = categorySelect.value;
         const product = getSelectedProduct();
+        if (!category || !product) {
+          totalValue.textContent = "0";
+          formatOutput.textContent = "";
+          return;
+        }
         const price = product ? product.price : 0;
         const total = price * quantity;
 
@@ -809,6 +839,21 @@
         }
       };
 
+      const hideToast = () => {
+        toast.classList.remove("show");
+        clearTimeout(showToast.timeoutId);
+      };
+
+      const resetForm = () => {
+        typeSelect.value = DEFAULT_TYPE;
+        refreshCustomSelect(typeSelect);
+        populateCategories();
+        populateProducts();
+        quantityInput.value = String(DEFAULT_QUANTITY);
+        updateOutput();
+        hideToast();
+      };
+
       typeSelect.addEventListener("change", () => {
         populateCategories();
         populateProducts();
@@ -824,6 +869,7 @@
       quantityInput.addEventListener("input", updateOutput);
 
       copyButton.addEventListener("click", copyToClipboard);
+      resetButton.addEventListener("click", resetForm);
 
       initCustomSelects();
 
