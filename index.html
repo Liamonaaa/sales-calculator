@@ -43,6 +43,10 @@
         padding: 32px 18px 48px;
       }
 
+      body.is-locked {
+        overflow: hidden;
+      }
+
       .app {
         width: min(880px, 96vw);
         position: relative;
@@ -333,6 +337,93 @@
         margin-top: 10px;
       }
 
+      .lock-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: radial-gradient(circle at 20% 15%, rgba(41, 92, 59, 0.45), transparent 50%),
+          radial-gradient(circle at 80% 20%, rgba(15, 54, 31, 0.4), transparent 42%),
+          rgba(5, 11, 8, 0.92);
+        backdrop-filter: blur(6px);
+      }
+
+      .lock-overlay[hidden] {
+        display: none;
+      }
+
+      .lock-card {
+        width: min(430px, 100%);
+        background: linear-gradient(160deg, #0f1914, #17261d);
+        border: 1px solid rgba(53, 255, 107, 0.25);
+        border-radius: 22px;
+        box-shadow: 0 22px 60px rgba(0, 0, 0, 0.45);
+        padding: 28px 24px 22px;
+        text-align: center;
+      }
+
+      .lock-title {
+        margin: 0;
+        font-size: clamp(1.75rem, 5vw, 2.15rem);
+        color: var(--text);
+      }
+
+      .lock-subtitle {
+        margin: 10px 0 20px;
+        color: var(--muted);
+      }
+
+      .lock-form {
+        display: grid;
+        gap: 12px;
+      }
+
+      .lock-input {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid #2b5a3a;
+        background: #0c1612;
+        color: var(--text);
+        font-size: 1.1rem;
+        text-align: center;
+        letter-spacing: 0.22em;
+        outline: none;
+      }
+
+      .lock-input:focus {
+        border-color: var(--green);
+        box-shadow: 0 0 0 2px rgba(53, 255, 107, 0.2);
+      }
+
+      .lock-button {
+        border: none;
+        border-radius: 12px;
+        padding: 12px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        color: #04210e;
+        background: linear-gradient(135deg, #28e86a, #57ff90);
+        box-shadow: 0 10px 28px rgba(24, 97, 47, 0.45);
+      }
+
+      .lock-error {
+        min-height: 1.25em;
+        margin: 0;
+        color: #ff7f92;
+        font-size: 0.95rem;
+      }
+
+      .lock-note {
+        margin: 16px 0 0;
+        font-size: 0.8rem;
+        color: #9db9a4;
+      }
+
       @media (max-width: 560px) {
         .panel {
           padding: 20px;
@@ -342,10 +433,35 @@
           flex-direction: column;
           align-items: flex-start;
         }
+
+        .lock-card {
+          padding: 24px 18px 20px;
+        }
       }
     </style>
   </head>
-  <body>
+  <body class="is-locked">
+    <div id="lockOverlay" class="lock-overlay" role="dialog" aria-modal="true" aria-labelledby="lockTitle">
+      <div class="lock-card">
+        <h2 id="lockTitle" class="lock-title">האתר נעול</h2>
+        <p class="lock-subtitle">הכנס קוד כדי להמשיך</p>
+        <form id="lockForm" class="lock-form" novalidate>
+          <input
+            id="lockInput"
+            class="lock-input"
+            type="password"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            autocomplete="one-time-code"
+            aria-label="קוד כניסה"
+          />
+          <button id="lockSubmit" class="lock-button" type="submit">כניסה</button>
+          <p id="lockError" class="lock-error" role="alert" aria-live="polite"></p>
+        </form>
+        <p class="lock-note">זהו מנגנון חסימה בסיסי (צד לקוח).</p>
+      </div>
+    </div>
+
     <main class="app">
             <header class="header">
         <h1>מחירון - גפניטה</h1>
@@ -435,15 +551,79 @@
       const copyButton = document.getElementById("copyButton");
       const resetButton = document.getElementById("resetButton");
       const toast = document.getElementById("toast");
+      const lockOverlay = document.getElementById("lockOverlay");
+      const lockForm = document.getElementById("lockForm");
+      const lockInput = document.getElementById("lockInput");
+      const lockError = document.getElementById("lockError");
+      const appRoot = document.querySelector(".app");
       const DEFAULT_TYPE = typeSelect.options[0]?.value || "";
       const DEFAULT_QUANTITY = (() => {
         const parsed = parseInt(quantityInput.defaultValue || quantityInput.value, 10);
         return Number.isNaN(parsed) || parsed < 1 ? 1 : parsed;
       })();
+      const PIN = "2011";
+      const UNLOCK_STORAGE_KEY = "salesCalcUnlockUntil";
+      const UNLOCK_DURATION_MS = 12 * 60 * 60 * 1000;
       const CATEGORY_PLACEHOLDER = "בחרו קטגוריה";
       const PRODUCT_PLACEHOLDER = "בחרו מוצר";
 
       const formatNumber = (value) => value.toLocaleString("he-IL");
+      const setSiteLocked = (isLocked) => {
+        document.body.classList.toggle("is-locked", isLocked);
+        lockOverlay.hidden = !isLocked;
+        if (appRoot) {
+          if (isLocked) {
+            appRoot.setAttribute("inert", "");
+            appRoot.setAttribute("aria-hidden", "true");
+          } else {
+            appRoot.removeAttribute("inert");
+            appRoot.removeAttribute("aria-hidden");
+          }
+        }
+      };
+
+      const getUnlockUntil = () => {
+        const storedValue = Number(localStorage.getItem(UNLOCK_STORAGE_KEY));
+        return Number.isFinite(storedValue) ? storedValue : 0;
+      };
+
+      const rememberUnlock = () => {
+        localStorage.setItem(UNLOCK_STORAGE_KEY, String(Date.now() + UNLOCK_DURATION_MS));
+      };
+
+      const unlockSite = () => {
+        rememberUnlock();
+        lockError.textContent = "";
+        lockInput.value = "";
+        setSiteLocked(false);
+      };
+
+      const initPinLock = () => {
+        if (Date.now() < getUnlockUntil()) {
+          setSiteLocked(false);
+          return;
+        }
+
+        setSiteLocked(true);
+        lockInput.focus();
+
+        lockForm.addEventListener("submit", (event) => {
+          event.preventDefault();
+          const enteredPin = lockInput.value.trim();
+          if (enteredPin !== PIN) {
+            lockError.textContent = "קוד שגוי";
+            lockInput.select();
+            return;
+          }
+          unlockSite();
+        });
+
+        lockInput.addEventListener("input", () => {
+          if (lockError.textContent) {
+            lockError.textContent = "";
+          }
+        });
+      };
 
       const customSelectState = new Map();
 
@@ -871,6 +1051,7 @@
       copyButton.addEventListener("click", copyToClipboard);
       resetButton.addEventListener("click", resetForm);
 
+      initPinLock();
       initCustomSelects();
 
       populateCategories();
