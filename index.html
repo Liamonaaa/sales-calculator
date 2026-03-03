@@ -474,6 +474,7 @@
             <span class="label">סוג</span>
             <select id="typeSelect">
               <option value="מוצר רגיל">מוצר רגיל</option>
+              <option value="מבצעים">מבצעים</option>
             </select>
           </label>
 
@@ -531,10 +532,12 @@
           ],
           "ארוחות": [
             { name: "ארוחת בורגר", price: 500 }
-          ],
+          ]
+        },
+        "מבצעים": {
           "מבצעים": [
-            { name: "מבצע קטן", details: "15 שתייה, 5 נאגטס", price: 2100 },
-            { name: "מבצע גדול", details: "30 שתייה, 10 נאגטס", price: 3800 }
+            { name: "מבצע קטן", details: "15 שתייה + 5 נאגטס", price: 2100 },
+            { name: "מבצע גדול", details: "30 שתייה + 10 נאגטס", price: 3800 }
           ]
         }
       };
@@ -566,6 +569,17 @@
       const PRODUCT_PLACEHOLDER = "בחרו מוצר";
 
       const formatNumber = (value) => value.toLocaleString("he-IL");
+      const getCategoriesForType = (type) => Object.keys(productsData[type] || {});
+      const getProductsForSelection = (type, category) => {
+        if (!category) {
+          return [];
+        }
+        const categories = getCategoriesForType(type);
+        if (!categories.includes(category)) {
+          return [];
+        }
+        return productsData[type][category] || [];
+      };
       const setSiteLocked = (isLocked) => {
         document.body.classList.toggle("is-locked", isLocked);
         lockOverlay.hidden = !isLocked;
@@ -910,7 +924,7 @@
 
       const populateCategories = () => {
         const type = typeSelect.value;
-        const categories = Object.keys(productsData[type]);
+        const categories = getCategoriesForType(type);
         categorySelect.innerHTML = "";
         const placeholder = document.createElement("option");
         placeholder.value = "";
@@ -929,7 +943,7 @@
       const populateProducts = () => {
         const type = typeSelect.value;
         const category = categorySelect.value;
-        const products = productsData[type][category] || [];
+        const products = getProductsForSelection(type, category);
         productSelect.innerHTML = "";
         const placeholder = document.createElement("option");
         placeholder.value = "";
@@ -986,7 +1000,7 @@
         if (!category) {
           return null;
         }
-        const products = productsData[type][category] || [];
+        const products = getProductsForSelection(type, category);
         const index = parseInt(productSelect.value, 10);
         if (Number.isNaN(index)) {
           return null;
@@ -1093,10 +1107,3 @@
     </script>
   </body>
 </html>
-
-
-
-
-
-
-
