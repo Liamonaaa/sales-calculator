@@ -489,7 +489,7 @@
 
           <label class="field">
             <span class="label">כמות</span>
-            <input id="quantityInput" type="number" min="1" step="1" value="1" />
+            <input id="quantityInput" type="number" min="0" step="1" value="1" />
           </label>
         </div>
 
@@ -552,8 +552,9 @@
       const DEFAULT_TYPE = typeSelect.options[0]?.value || "";
       const DEFAULT_QUANTITY = (() => {
         const parsed = parseInt(quantityInput.defaultValue || quantityInput.value, 10);
-        return Number.isNaN(parsed) || parsed < 1 ? 1 : parsed;
+        return Number.isNaN(parsed) || parsed < 0 ? 0 : parsed;
       })();
+      let lastValidQuantity = DEFAULT_QUANTITY;
       const PIN = "2011";
       const UNLOCK_STORAGE_KEY = "salesCalcUnlockUntil";
       const UNLOCK_DURATION_MS = 12 * 60 * 60 * 1000;
@@ -941,13 +942,38 @@
         refreshCustomSelect(productSelect);
       };
 
-      const getQuantity = () => {
-        let quantity = parseInt(quantityInput.value, 10);
-        if (Number.isNaN(quantity) || quantity < 1) {
-          quantity = 1;
-          quantityInput.value = "1";
+      const parseQuantityValue = (rawValue) => {
+        const trimmedValue = rawValue.trim();
+        if (!trimmedValue) {
+          return { kind: "empty", value: 0 };
         }
-        return quantity;
+        const parsedValue = Number(trimmedValue);
+        if (!Number.isFinite(parsedValue) || !Number.isInteger(parsedValue)) {
+          return { kind: "invalid", value: lastValidQuantity };
+        }
+        if (parsedValue < 0) {
+          return { kind: "negative", value: 0 };
+        }
+        return { kind: "valid", value: parsedValue };
+      };
+
+      const getQuantity = () => {
+        const parsedQuantity = parseQuantityValue(quantityInput.value);
+        return parsedQuantity.value;
+      };
+
+      const normalizeQuantityInput = () => {
+        const parsedQuantity = parseQuantityValue(quantityInput.value);
+        if (parsedQuantity.kind === "empty" || parsedQuantity.kind === "negative") {
+          quantityInput.value = "0";
+          lastValidQuantity = 0;
+        } else if (parsedQuantity.kind === "invalid") {
+          quantityInput.value = String(lastValidQuantity);
+        } else {
+          lastValidQuantity = parsedQuantity.value;
+          quantityInput.value = String(parsedQuantity.value);
+        }
+        updateOutput();
       };
 
       const getSelectedProduct = () => {
@@ -995,6 +1021,7 @@
       };
 
       const copyToClipboard = async () => {
+        normalizeQuantityInput();
         const text = formatOutput.textContent;
         try {
           await navigator.clipboard.writeText(text);
@@ -1023,6 +1050,7 @@
         populateCategories();
         populateProducts();
         quantityInput.value = String(DEFAULT_QUANTITY);
+        lastValidQuantity = DEFAULT_QUANTITY;
         updateOutput();
         hideToast();
       };
@@ -1039,7 +1067,15 @@
       });
 
       productSelect.addEventListener("change", updateOutput);
-      quantityInput.addEventListener("input", updateOutput);
+      quantityInput.addEventListener("input", () => {
+        const parsedQuantity = parseQuantityValue(quantityInput.value);
+        if (parsedQuantity.kind === "valid") {
+          lastValidQuantity = parsedQuantity.value;
+        }
+        updateOutput();
+      });
+      quantityInput.addEventListener("change", normalizeQuantityInput);
+      quantityInput.addEventListener("blur", normalizeQuantityInput);
 
       copyButton.addEventListener("click", copyToClipboard);
       resetButton.addEventListener("click", resetForm);
