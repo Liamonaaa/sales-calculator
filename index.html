@@ -244,7 +244,101 @@
         padding: 10px 12px;
         color: var(--muted);
         text-align: start;
-      }.total {
+      }
+
+      .discount-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 14px 16px;
+        margin-bottom: 18px;
+        border-radius: 16px;
+        border: 1px solid rgba(53, 255, 107, 0.18);
+        background: linear-gradient(160deg, rgba(12, 24, 18, 0.92), rgba(16, 30, 22, 0.82));
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      }
+
+      .discount-toggle:hover {
+        border-color: rgba(53, 255, 107, 0.35);
+      }
+
+      .discount-toggle.is-active {
+        border-color: rgba(53, 255, 107, 0.72);
+        box-shadow: 0 0 0 1px rgba(53, 255, 107, 0.15), 0 12px 28px rgba(8, 30, 16, 0.45);
+        background: linear-gradient(160deg, rgba(15, 34, 23, 0.96), rgba(19, 42, 29, 0.86));
+      }
+
+      .discount-toggle__content {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .discount-toggle__label {
+        font-size: 0.98rem;
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .discount-toggle__state {
+        font-size: 0.82rem;
+        color: var(--muted);
+        transition: color 0.2s ease;
+      }
+
+      .discount-toggle.is-active .discount-toggle__state {
+        color: var(--green);
+      }
+
+      .discount-toggle__input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .discount-toggle__switch {
+        position: relative;
+        flex-shrink: 0;
+        width: 62px;
+        height: 34px;
+        border-radius: 999px;
+        border: 1px solid rgba(53, 255, 107, 0.24);
+        background: rgba(8, 16, 12, 0.95);
+        box-shadow: inset 0 0 0 1px rgba(8, 16, 12, 0.45);
+        transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .discount-toggle__switch::before {
+        content: "";
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #d7ffe1, #7dffab);
+        box-shadow: 0 4px 14px rgba(26, 114, 53, 0.45);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .discount-toggle__input:focus-visible + .discount-toggle__switch {
+        border-color: var(--green);
+        box-shadow: 0 0 0 3px rgba(53, 255, 107, 0.26);
+      }
+
+      .discount-toggle__input:checked + .discount-toggle__switch {
+        background: linear-gradient(135deg, rgba(28, 124, 58, 0.95), rgba(53, 255, 107, 0.95));
+        border-color: rgba(88, 255, 135, 0.9);
+        box-shadow: 0 0 18px rgba(53, 255, 107, 0.28);
+      }
+
+      .discount-toggle__input:checked + .discount-toggle__switch::before {
+        transform: translateX(-28px);
+        box-shadow: 0 6px 18px rgba(10, 62, 25, 0.45);
+      }
+
+      .total {
         font-size: 1.2rem;
         padding: 14px 16px;
         border-radius: 14px;
@@ -255,6 +349,12 @@
         align-items: center;
         gap: 12px;
         margin-bottom: 18px;
+      }
+
+      .total.discount-active {
+        border-color: rgba(53, 255, 107, 0.72);
+        box-shadow: 0 0 0 1px rgba(53, 255, 107, 0.16), 0 14px 34px rgba(8, 30, 16, 0.35);
+        background: linear-gradient(160deg, rgba(14, 35, 22, 0.9), rgba(12, 27, 18, 0.8));
       }
 
       .total strong {
@@ -354,7 +454,7 @@
       </header>
 
       <section class="panel">
-                <div class="grid">
+        <div class="grid">
           <label class="field">
             <span class="label">סוג</span>
             <select id="typeSelect">
@@ -378,6 +478,17 @@
             <input id="quantityInput" type="number" min="0" step="1" value="1" />
           </label>
         </div>
+
+        <label class="discount-toggle" for="discountToggle">
+          <span class="discount-toggle__content">
+            <span class="discount-toggle__label">הנחת מד״א / משטרה (5%)</span>
+            <span class="discount-toggle__state" id="discountStatus">כבוי</span>
+          </span>
+          <span>
+            <input class="discount-toggle__input" id="discountToggle" type="checkbox" />
+            <span class="discount-toggle__switch" aria-hidden="true"></span>
+          </span>
+        </label>
 
         <div class="total">
           <span>סה״כ:</span>
@@ -431,11 +542,16 @@
       const categorySelect = document.getElementById("categorySelect");
       const productSelect = document.getElementById("productSelect");
       const quantityInput = document.getElementById("quantityInput");
+      const discountToggle = document.getElementById("discountToggle");
+      const discountStatus = document.getElementById("discountStatus");
+      const discountControl = document.querySelector(".discount-toggle");
+      const totalContainer = document.querySelector(".total");
       const totalValue = document.getElementById("totalValue");
       const formatOutput = document.getElementById("formatOutput");
       const copyButton = document.getElementById("copyButton");
       const resetButton = document.getElementById("resetButton");
       const toast = document.getElementById("toast");
+      const DISCOUNT_RATE = 0.05;
       const DEFAULT_TYPE = typeSelect.options[0]?.value || "";
       const DEFAULT_QUANTITY = (() => {
         const parsed = parseInt(quantityInput.defaultValue || quantityInput.value, 10);
@@ -800,6 +916,21 @@
         return parsedQuantity.value;
       };
 
+      const getDiscountState = () => Boolean(discountToggle?.checked);
+
+      const updateDiscountUi = () => {
+        const isDiscountActive = getDiscountState();
+        if (discountStatus) {
+          discountStatus.textContent = isDiscountActive ? "פעיל" : "כבוי";
+        }
+        if (discountControl) {
+          discountControl.classList.toggle("is-active", isDiscountActive);
+        }
+        if (totalContainer) {
+          totalContainer.classList.toggle("discount-active", isDiscountActive);
+        }
+      };
+
       const normalizeQuantityInput = () => {
         const parsedQuantity = parseQuantityValue(quantityInput.value);
         if (parsedQuantity.kind === "empty" || parsedQuantity.kind === "negative") {
@@ -832,21 +963,32 @@
         const quantity = getQuantity();
         const category = categorySelect.value;
         const product = getSelectedProduct();
+        const isDiscountActive = getDiscountState();
+        updateDiscountUi();
         if (!category || !product) {
           totalValue.textContent = "0";
           formatOutput.textContent = "";
           return;
         }
         const price = product ? product.price : 0;
-        const total = price * quantity;
+        const baseTotal = price * quantity;
+        const discountAmount = isDiscountActive ? baseTotal * DISCOUNT_RATE : 0;
+        const finalTotal = Math.round((baseTotal - discountAmount) * 100) / 100;
 
-        totalValue.textContent = formatNumber(total);
-                const productName = product ? product.name : "";
+        totalValue.textContent = formatNumber(finalTotal);
+        const productName = product ? product.name : "";
         const productDetails = product && product.details ? ` (${product.details})` : "";
-        const formattedText = `פורמט מכירה
+        const formattedText = isDiscountActive
+          ? `פורמט מכירה
 מה מכרתי: ${category} - ${productName}${productDetails}
 כמות: ${quantity}
-כמה עלה: ${formatNumber(total)}`;
+הנחה: 5% למד״א / משטרה
+מחיר לפני הנחה: ${formatNumber(baseTotal)}
+כמה עלה: ${formatNumber(finalTotal)}`
+          : `פורמט מכירה
+מה מכרתי: ${category} - ${productName}${productDetails}
+כמות: ${quantity}
+כמה עלה: ${formatNumber(finalTotal)}`;
         formatOutput.textContent = formattedText;
       };
 
@@ -888,6 +1030,7 @@
         populateCategories();
         populateProducts();
         quantityInput.value = String(DEFAULT_QUANTITY);
+        discountToggle.checked = false;
         lastValidQuantity = DEFAULT_QUANTITY;
         updateOutput();
         hideToast();
@@ -914,6 +1057,7 @@
       });
       quantityInput.addEventListener("change", normalizeQuantityInput);
       quantityInput.addEventListener("blur", normalizeQuantityInput);
+      discountToggle.addEventListener("change", updateOutput);
 
       copyButton.addEventListener("click", copyToClipboard);
       resetButton.addEventListener("click", resetForm);
