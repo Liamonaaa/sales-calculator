@@ -586,7 +586,7 @@
             <span class="discount-toggle__content">
               <span class="discount-toggle__label">הנחת מד״א / משטרה</span>
               <span class="discount-toggle__meta">
-                <span class="discount-toggle__subtitle">הנחה של 5%</span>
+                <span class="discount-toggle__subtitle">מבצע קטן 1400, מבצע גדול 1800</span>
                 <span class="discount-toggle__state" id="discountStatus">כבוי</span>
               </span>
             </span>
@@ -658,7 +658,10 @@
       const copyButton = document.getElementById("copyButton");
       const resetButton = document.getElementById("resetButton");
       const toast = document.getElementById("toast");
-      const DISCOUNT_RATE = 0.05;
+      const DISCOUNT_PRICES = {
+        "מבצע קטן": 1400,
+        "מבצע גדול": 1800
+      };
       const DEFAULT_TYPE = typeSelect.options[0]?.value || "";
       const DEFAULT_QUANTITY = (() => {
         const parsed = parseInt(quantityInput.defaultValue || quantityInput.value, 10);
@@ -987,6 +990,8 @@
         const type = typeSelect.value;
         const category = categorySelect.value;
         const products = getProductsForSelection(type, category);
+        const previousValue = productSelect.value;
+        const isDiscountActive = getDiscountState();
         productSelect.innerHTML = "";
         const placeholder = document.createElement("option");
         placeholder.value = "";
@@ -996,10 +1001,11 @@
           const option = document.createElement("option");
           option.value = String(index);
           const details = product.details ? ` (${product.details})` : "";
-          option.textContent = `${product.name}${details} • ${formatNumber(product.price)}`;
+          option.textContent = `${product.name}${details} • ${formatNumber(getProductPrice(product, isDiscountActive))}`;
           productSelect.appendChild(option);
         });
-        productSelect.value = "";
+        const previousIndex = Number.parseInt(previousValue, 10);
+        productSelect.value = Number.isInteger(previousIndex) && products[previousIndex] ? previousValue : "";
         refreshCustomSelect(productSelect);
       };
 
@@ -1036,6 +1042,16 @@
         if (totalContainer) {
           totalContainer.classList.toggle("discount-active", isDiscountActive);
         }
+      };
+
+      const getProductPrice = (product, isDiscountActive) => {
+        if (!product) {
+          return 0;
+        }
+        if (!isDiscountActive) {
+          return product.price;
+        }
+        return DISCOUNT_PRICES[product.name] ?? product.price;
       };
 
       const normalizeQuantityInput = () => {
@@ -1077,15 +1093,15 @@
           formatOutput.textContent = "";
           return;
         }
-        const price = product ? product.price : 0;
-        const baseTotal = price * quantity;
-        const discountAmount = isDiscountActive ? baseTotal * DISCOUNT_RATE : 0;
-        const finalTotal = Math.round((baseTotal - discountAmount) * 100) / 100;
+        const unitPrice = getProductPrice(product, isDiscountActive);
+        const finalTotal = unitPrice * quantity;
+        const baseTotal = finalTotal;
 
         totalValue.textContent = formatNumber(finalTotal);
         const productName = product ? product.name : "";
         const productDetails = product && product.details ? ` (${product.details})` : "";
-        const formattedText = isDiscountActive
+        const usesSpecialPrice = isDiscountActive && DISCOUNT_PRICES[productName] !== undefined;
+        const formattedText = usesSpecialPrice
           ? `פורמט מכירה
 מה מכרתי: ${category} - ${productName}${productDetails}
 כמות: ${quantity}
@@ -1096,7 +1112,12 @@
 מה מכרתי: ${category} - ${productName}${productDetails}
 כמות: ${quantity}
 כמה עלה: ${formatNumber(finalTotal)}`;
-        formatOutput.textContent = formattedText;
+        const specialPriceText = `\u05e4\u05d5\u05e8\u05de\u05d8 \u05de\u05db\u05d9\u05e8\u05d4
+\u05de\u05d4 \u05de\u05db\u05e8\u05ea\u05d9: ${category} - ${productName}${productDetails}
+\u05db\u05de\u05d5\u05ea: ${quantity}
+\u05de\u05d7\u05d9\u05e8 \u05dc\u05d9\u05d7\u05d9\u05d3\u05d4 \u05dc\u05de\u05d3"\u05d0 / \u05de\u05e9\u05d8\u05e8\u05d4: ${formatNumber(unitPrice)}
+\u05db\u05de\u05d4 \u05e2\u05dc\u05d4: ${formatNumber(finalTotal)}`;
+        formatOutput.textContent = usesSpecialPrice ? specialPriceText : formattedText;
       };
 
       const showToast = () => {
@@ -1134,10 +1155,10 @@
       const resetForm = () => {
         typeSelect.value = DEFAULT_TYPE;
         refreshCustomSelect(typeSelect);
+        discountToggle.checked = false;
         populateCategories();
         populateProducts();
         quantityInput.value = String(DEFAULT_QUANTITY);
-        discountToggle.checked = false;
         lastValidQuantity = DEFAULT_QUANTITY;
         updateOutput();
         hideToast();
@@ -1164,7 +1185,10 @@
       });
       quantityInput.addEventListener("change", normalizeQuantityInput);
       quantityInput.addEventListener("blur", normalizeQuantityInput);
-      discountToggle.addEventListener("change", updateOutput);
+      discountToggle.addEventListener("change", () => {
+        populateProducts();
+        updateOutput();
+      });
 
       copyButton.addEventListener("click", copyToClipboard);
       resetButton.addEventListener("click", resetForm);
