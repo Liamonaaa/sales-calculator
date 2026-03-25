@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>מחירון - בורגר שוט</title>
-    <link rel="icon" href="data:," />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;800&display=swap" rel="stylesheet" />
@@ -469,6 +468,51 @@
         box-shadow: 0 0 24px rgba(53, 255, 107, 0.7), 0 10px 34px rgba(11, 56, 22, 0.85);
       }
 
+      .copy-output {
+        background: #0c1712;
+        border: 1px solid #1f3b2c;
+        border-radius: 16px;
+        padding: 18px;
+        white-space: pre-line;
+        font-size: 0.98rem;
+        color: #d8ffe3;
+      }
+
+      .copy-title {
+        margin: 0 0 8px;
+        font-weight: 600;
+        color: var(--muted);
+      }
+
+      .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 28px;
+        transform: translateX(-50%) translateY(20px);
+        background: #0f1e15;
+        border: 1px solid #2b5a3a;
+        color: var(--text);
+        padding: 10px 18px;
+        border-radius: 999px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        z-index: 20;
+      }
+
+      .toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      .hint {
+        font-size: 0.85rem;
+        color: var(--muted);
+        text-align: center;
+        margin-top: 10px;
+      }
+
       @media (max-width: 560px) {
         .panel {
           padding: 20px;
@@ -508,7 +552,7 @@
     <main class="app">
             <header class="header">
         <h1>מחירון - בורגר שוט</h1>
-        <p>בחרו מוצר, הגדירו כמות וראו מיד את הסכום המחושב.</p>
+        <p>בחרו מוצר, הגדירו כמות וקבלו פורמט מסודר לשיתוף.</p>
       </header>
 
       <section class="panel">
@@ -559,10 +603,17 @@
         </div>
 
         <div class="actions">
+          <button class="glow-button" id="copyButton">העתק פורמט</button>
           <button class="glow-button" id="resetButton" type="button">איפוס</button>
         </div>
+
+        <div class="copy-title">טקסט מוכן להעתקה</div>
+        <pre class="copy-output" id="formatOutput"></pre>
+        <div class="hint">הטקסט מתעדכן בזמן אמת לפי הבחירות.</div>
       </section>
     </main>
+
+    <div id="toast" class="toast" role="status" aria-live="polite">הועתק! הטקסט הועתק ללוח</div>
 
     <script>
                         const productsData = {
@@ -603,7 +654,10 @@
       const discountControl = document.querySelector(".discount-toggle");
       const totalContainer = document.querySelector(".total");
       const totalValue = document.getElementById("totalValue");
+      const formatOutput = document.getElementById("formatOutput");
+      const copyButton = document.getElementById("copyButton");
       const resetButton = document.getElementById("resetButton");
+      const toast = document.getElementById("toast");
       const DISCOUNT_PRICES = {
         "מבצע קטן": 1400,
         "מבצע גדול": 1800
@@ -1036,11 +1090,66 @@
         updateDiscountUi();
         if (!category || !product) {
           totalValue.textContent = "0";
+          formatOutput.textContent = "";
           return;
         }
         const unitPrice = getProductPrice(product, isDiscountActive);
         const finalTotal = unitPrice * quantity;
+        const baseTotal = finalTotal;
+
         totalValue.textContent = formatNumber(finalTotal);
+        const productName = product ? product.name : "";
+        const productDetails = product && product.details ? ` (${product.details})` : "";
+        const usesSpecialPrice = isDiscountActive && DISCOUNT_PRICES[productName] !== undefined;
+        const formattedText = usesSpecialPrice
+          ? `פורמט מכירה
+מה מכרתי: ${category} - ${productName}${productDetails}
+כמות: ${quantity}
+הנחה: 5% למד״א / משטרה
+מחיר לפני הנחה: ${formatNumber(baseTotal)}
+כמה עלה: ${formatNumber(finalTotal)}`
+          : `פורמט מכירה
+מה מכרתי: ${category} - ${productName}${productDetails}
+כמות: ${quantity}
+כמה עלה: ${formatNumber(finalTotal)}`;
+        const specialPriceText = `\u05e4\u05d5\u05e8\u05de\u05d8 \u05de\u05db\u05d9\u05e8\u05d4
+\u05de\u05d4 \u05de\u05db\u05e8\u05ea\u05d9: ${category} - ${productName}${productDetails}
+\u05db\u05de\u05d5\u05ea: ${quantity}
+\u05de\u05d7\u05d9\u05e8 \u05dc\u05d9\u05d7\u05d9\u05d3\u05d4 \u05dc\u05de\u05d3"\u05d0 / \u05de\u05e9\u05d8\u05e8\u05d4: ${formatNumber(unitPrice)}
+\u05db\u05de\u05d4 \u05e2\u05dc\u05d4: ${formatNumber(finalTotal)}`;
+        formatOutput.textContent = usesSpecialPrice ? specialPriceText : formattedText;
+      };
+
+      const showToast = () => {
+        toast.classList.add("show");
+        clearTimeout(showToast.timeoutId);
+        showToast.timeoutId = setTimeout(() => {
+          toast.classList.remove("show");
+        }, 2200);
+      };
+
+      const copyToClipboard = async () => {
+        normalizeQuantityInput();
+        const text = formatOutput.textContent;
+        try {
+          await navigator.clipboard.writeText(text);
+          showToast();
+        } catch (error) {
+          const temp = document.createElement("textarea");
+          temp.value = text;
+          temp.style.position = "fixed";
+          temp.style.left = "-9999px";
+          document.body.appendChild(temp);
+          temp.select();
+          document.execCommand("copy");
+          document.body.removeChild(temp);
+          showToast();
+        }
+      };
+
+      const hideToast = () => {
+        toast.classList.remove("show");
+        clearTimeout(showToast.timeoutId);
       };
 
       const resetForm = () => {
@@ -1052,6 +1161,7 @@
         quantityInput.value = String(DEFAULT_QUANTITY);
         lastValidQuantity = DEFAULT_QUANTITY;
         updateOutput();
+        hideToast();
       };
 
       typeSelect.addEventListener("change", () => {
@@ -1080,6 +1190,7 @@
         updateOutput();
       });
 
+      copyButton.addEventListener("click", copyToClipboard);
       resetButton.addEventListener("click", resetForm);
 
       initCustomSelects();
