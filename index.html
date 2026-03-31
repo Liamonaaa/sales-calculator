@@ -43,9 +43,38 @@
         padding: 32px 18px 48px;
       }
 
+      body.auth-pending {
+        visibility: hidden;
+      }
+
+      body.auth-blocked {
+        visibility: visible;
+        padding: 24px;
+      }
+
       .app {
         width: min(880px, 96vw);
         position: relative;
+      }
+
+      .auth-message {
+        width: min(420px, 100%);
+        padding: 28px;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        background: linear-gradient(160deg, var(--panel), var(--panel-2));
+        box-shadow: var(--shadow);
+        text-align: center;
+      }
+
+      .auth-message h2 {
+        margin: 0 0 12px;
+        font-size: 1.5rem;
+      }
+
+      .auth-message p {
+        margin: 0;
+        color: var(--muted);
       }
 
       .header {
@@ -548,7 +577,7 @@
       }
     </style>
   </head>
-  <body>
+  <body class="auth-pending">
     <main class="app">
             <header class="header">
         <h1>מחירון - בורגר שוט</h1>
@@ -616,6 +645,35 @@
     <div id="toast" class="toast" role="status" aria-live="polite">הועתק! הטקסט הועתק ללוח</div>
 
     <script>
+      const ACCESS_CODE = "2011";
+
+      const showAccessBlockedMessage = () => {
+        document.body.className = "auth-blocked";
+        document.body.innerHTML =
+          '<main class="auth-message"><h2>\u05d4\u05d2\u05d9\u05e9\u05d4 \u05e0\u05d7\u05e1\u05de\u05d4</h2><p>\u05e8\u05e7 \u05de\u05d9 \u05e9\u05de\u05d6\u05d9\u05df \u05e7\u05d5\u05d3 \u05e0\u05db\u05d5\u05df \u05d9\u05db\u05d5\u05dc \u05dc\u05d4\u05de\u05e9\u05d9\u05da.</p></main>';
+      };
+
+      const requestAccessCode = () => {
+        let providedCode = "";
+        while (providedCode !== ACCESS_CODE) {
+          providedCode = window.prompt("\u05d4\u05db\u05e0\u05e1 \u05e7\u05d5\u05d3 \u05db\u05d3\u05d9 \u05dc\u05d4\u05d9\u05db\u05e0\u05e1 \u05dc\u05d0\u05ea\u05e8:");
+          if (providedCode === null) {
+            showAccessBlockedMessage();
+            return false;
+          }
+          if (providedCode !== ACCESS_CODE) {
+            window.alert("\u05e7\u05d5\u05d3 \u05e9\u05d2\u05d5\u05d9. \u05e0\u05e1\u05d4 \u05e9\u05d5\u05d1.");
+          }
+        }
+
+        document.body.classList.remove("auth-pending");
+        return true;
+      };
+
+      if (!requestAccessCode()) {
+        throw new Error("Access denied");
+      }
+
                         const productsData = {
         "מוצר רגיל": {
           "שתייה": [
