@@ -43,38 +43,167 @@
         padding: 32px 18px 48px;
       }
 
-      body.auth-pending {
-        visibility: hidden;
-      }
-
-      body.auth-blocked {
-        visibility: visible;
-        padding: 24px;
-      }
-
       .app {
         width: min(880px, 96vw);
         position: relative;
+        transition: filter 0.35s ease, transform 0.35s ease, opacity 0.35s ease;
       }
 
-      .auth-message {
-        width: min(420px, 100%);
-        padding: 28px;
-        border-radius: 20px;
-        border: 1px solid var(--border);
-        background: linear-gradient(160deg, var(--panel), var(--panel-2));
-        box-shadow: var(--shadow);
-        text-align: center;
+      body.is-locked {
+        overflow: hidden;
       }
 
-      .auth-message h2 {
-        margin: 0 0 12px;
-        font-size: 1.5rem;
+      body.is-locked .app {
+        filter: blur(18px);
+        transform: scale(0.985);
+        opacity: 0.28;
+        pointer-events: none;
+        user-select: none;
       }
 
-      .auth-message p {
-        margin: 0;
+      body.is-locked .toast {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .auth-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background:
+          radial-gradient(circle at 18% 18%, rgba(53, 255, 107, 0.14), transparent 32%),
+          radial-gradient(circle at 82% 14%, rgba(30, 219, 95, 0.1), transparent 30%),
+          rgba(4, 10, 7, 0.68);
+        backdrop-filter: blur(18px);
+        opacity: 1;
+        visibility: visible;
+        transition: opacity 0.35s ease, visibility 0.35s ease;
+      }
+
+      body:not(.is-locked) .auth-overlay {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      .auth-card {
+        width: min(460px, 100%);
+        position: relative;
+        overflow: hidden;
+        padding: 32px 28px 28px;
+        border-radius: 28px;
+        border: 1px solid rgba(53, 255, 107, 0.2);
+        background:
+          radial-gradient(circle at top left, rgba(53, 255, 107, 0.12), transparent 40%),
+          linear-gradient(160deg, rgba(12, 21, 17, 0.96), rgba(19, 31, 24, 0.94));
+        box-shadow:
+          0 24px 70px rgba(1, 14, 7, 0.68),
+          inset 0 1px 0 rgba(240, 255, 244, 0.04);
+      }
+
+      .auth-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(130deg, rgba(255, 255, 255, 0.04), transparent 38%),
+          radial-gradient(circle at 80% 20%, rgba(53, 255, 107, 0.08), transparent 26%);
+        pointer-events: none;
+      }
+
+      .auth-content {
+        position: relative;
+        z-index: 1;
+      }
+
+      .auth-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 52px;
+        height: 52px;
+        margin-bottom: 18px;
+        border-radius: 16px;
+        border: 1px solid rgba(91, 255, 145, 0.28);
+        background: linear-gradient(135deg, rgba(30, 219, 95, 0.24), rgba(75, 255, 133, 0.08));
+        color: var(--green);
+        box-shadow: 0 12px 32px rgba(6, 41, 18, 0.35);
+        font-size: 1.4rem;
+        font-weight: 800;
+      }
+
+      .auth-title {
+        margin: 0 0 10px;
+        font-size: clamp(1.8rem, 4vw, 2.2rem);
+        letter-spacing: 0.02em;
+      }
+
+      .auth-subtitle {
+        margin: 0 0 24px;
         color: var(--muted);
+        font-size: 1rem;
+        line-height: 1.6;
+      }
+
+      .auth-form {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .auth-input {
+        width: 100%;
+        height: 54px;
+        padding: 0 16px;
+        border-radius: 16px;
+        border: 1px solid rgba(53, 255, 107, 0.24);
+        background: rgba(7, 14, 10, 0.92);
+        color: var(--text);
+        font: inherit;
+        font-size: 1rem;
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      }
+
+      .auth-input::placeholder {
+        color: #7fa889;
+      }
+
+      .auth-input:focus {
+        border-color: rgba(75, 255, 133, 0.82);
+        box-shadow: 0 0 0 3px rgba(53, 255, 107, 0.18);
+        background: rgba(10, 18, 13, 0.98);
+      }
+
+      .auth-submit {
+        width: 100%;
+        min-height: 54px;
+      }
+
+      .auth-error {
+        min-height: 22px;
+        margin: 2px 4px 0;
+        color: #ff8f8f;
+        font-size: 0.92rem;
+        line-height: 1.4;
+      }
+
+      .auth-error:empty {
+        display: none;
+      }
+
+      .auth-note {
+        margin: 10px 2px 0;
+        color: #8fb79a;
+        font-size: 0.88rem;
+      }
+
+      .auth-overlay[hidden] {
+        display: none;
       }
 
       .header {
@@ -543,6 +672,10 @@
       }
 
       @media (max-width: 560px) {
+        body {
+          padding: 24px 14px 36px;
+        }
+
         .panel {
           padding: 20px;
         }
@@ -574,10 +707,38 @@
           flex-direction: column;
           align-items: flex-start;
         }
+
+        .auth-overlay {
+          padding: 16px;
+        }
+
+        .auth-card {
+          padding: 26px 20px 22px;
+          border-radius: 24px;
+        }
+
+        .auth-subtitle {
+          margin-bottom: 20px;
+        }
       }
     </style>
   </head>
-  <body class="auth-pending">
+  <body class="is-locked">
+    <div class="auth-overlay" id="authOverlay" role="dialog" aria-modal="true" aria-labelledby="authTitle" aria-describedby="authSubtitle">
+      <section class="auth-card">
+        <div class="auth-content">
+          <div class="auth-badge" aria-hidden="true">01</div>
+          <h2 class="auth-title" id="authTitle">כניסה לאתר</h2>
+          <p class="auth-subtitle" id="authSubtitle">הכנס קוד כדי להמשיך</p>
+          <form class="auth-form" id="authForm">
+            <input class="auth-input" id="accessCodeInput" type="password" inputmode="numeric" autocomplete="off" placeholder="קוד גישה" aria-label="קוד גישה" />
+            <button class="glow-button auth-submit" type="submit">כניסה</button>
+            <p class="auth-error" id="authError" role="alert" aria-live="polite"></p>
+          </form>
+          <p class="auth-note">הגישה למחירון פתוחה רק למי שיש קוד גישה.</p>
+        </div>
+      </section>
+    </div>
     <main class="app">
             <header class="header">
         <h1>מחירון - בורגר שוט</h1>
@@ -647,33 +808,6 @@
     <script>
       const ACCESS_CODE = "2011";
 
-      const showAccessBlockedMessage = () => {
-        document.body.className = "auth-blocked";
-        document.body.innerHTML =
-          '<main class="auth-message"><h2>\u05d4\u05d2\u05d9\u05e9\u05d4 \u05e0\u05d7\u05e1\u05de\u05d4</h2><p>\u05e8\u05e7 \u05de\u05d9 \u05e9\u05de\u05d6\u05d9\u05df \u05e7\u05d5\u05d3 \u05e0\u05db\u05d5\u05df \u05d9\u05db\u05d5\u05dc \u05dc\u05d4\u05de\u05e9\u05d9\u05da.</p></main>';
-      };
-
-      const requestAccessCode = () => {
-        let providedCode = "";
-        while (providedCode !== ACCESS_CODE) {
-          providedCode = window.prompt("\u05d4\u05db\u05e0\u05e1 \u05e7\u05d5\u05d3 \u05db\u05d3\u05d9 \u05dc\u05d4\u05d9\u05db\u05e0\u05e1 \u05dc\u05d0\u05ea\u05e8:");
-          if (providedCode === null) {
-            showAccessBlockedMessage();
-            return false;
-          }
-          if (providedCode !== ACCESS_CODE) {
-            window.alert("\u05e7\u05d5\u05d3 \u05e9\u05d2\u05d5\u05d9. \u05e0\u05e1\u05d4 \u05e9\u05d5\u05d1.");
-          }
-        }
-
-        document.body.classList.remove("auth-pending");
-        return true;
-      };
-
-      if (!requestAccessCode()) {
-        throw new Error("Access denied");
-      }
-
                         const productsData = {
         "מוצר רגיל": {
           "שתייה": [
@@ -716,6 +850,11 @@
       const copyButton = document.getElementById("copyButton");
       const resetButton = document.getElementById("resetButton");
       const toast = document.getElementById("toast");
+      const app = document.querySelector(".app");
+      const authOverlay = document.getElementById("authOverlay");
+      const authForm = document.getElementById("authForm");
+      const accessCodeInput = document.getElementById("accessCodeInput");
+      const authError = document.getElementById("authError");
       const DISCOUNT_PRICES = {
         "מבצע קטן": 1400,
         "מבצע גדול": 1800
@@ -728,6 +867,32 @@
       let lastValidQuantity = DEFAULT_QUANTITY;
       const CATEGORY_PLACEHOLDER = "בחרו קטגוריה";
       const PRODUCT_PLACEHOLDER = "בחרו מוצר";
+
+      const setAuthError = (message) => {
+        authError.textContent = message;
+        accessCodeInput.setAttribute("aria-invalid", message ? "true" : "false");
+      };
+
+      const setSiteLocked = (locked) => {
+        document.body.classList.toggle("is-locked", locked);
+        if (app) {
+          app.setAttribute("aria-hidden", locked ? "true" : "false");
+          app.inert = locked;
+        }
+        if (toast) {
+          toast.inert = locked;
+        }
+        if (authOverlay) {
+          authOverlay.hidden = !locked;
+          authOverlay.setAttribute("aria-hidden", locked ? "false" : "true");
+        }
+      };
+
+      const unlockSite = () => {
+        setAuthError("");
+        setSiteLocked(false);
+        accessCodeInput.value = "";
+      };
 
       const formatNumber = (value) => value.toLocaleString("he-IL");
       const getCategoriesForType = (type) => Object.keys(productsData[type] || {});
@@ -1251,11 +1416,31 @@
       copyButton.addEventListener("click", copyToClipboard);
       resetButton.addEventListener("click", resetForm);
 
+      authForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const providedCode = accessCodeInput.value.trim();
+        if (providedCode === ACCESS_CODE) {
+          unlockSite();
+          return;
+        }
+        setAuthError("קוד שגוי, נסה שוב");
+        accessCodeInput.focus();
+        accessCodeInput.select();
+      });
+
+      accessCodeInput.addEventListener("input", () => {
+        if (authError.textContent) {
+          setAuthError("");
+        }
+      });
+
       initCustomSelects();
 
       populateCategories();
       populateProducts();
       updateOutput();
+      setSiteLocked(true);
+      requestAnimationFrame(() => accessCodeInput.focus());
     </script>
   </body>
 </html>
